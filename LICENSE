@@ -1,0 +1,17 @@
+Math-Ground AI (mgai) is distributed under the Business Source License 1.1.
+
+Canonical license text:  https://mariadb.com/bsl11/
+
+Licensor:                 Open Interface Engineering, Inc.
+Licensed Work:            mgai-meter and other binaries attached to releases
+                          of this repository.
+Additional Use Grant:     Any non-commercial use; any internal use by an
+                          organisation with annual revenue under USD 1M;
+                          any use for security research, academic research,
+                          or independent verification of receipts.
+Change Date:              Four years after the initial release date of each
+                          binary, declared on the corresponding release page.
+Change License:           Apache License, Version 2.0.
+
+Receipts and CHARTER.md are licensed CC-BY-4.0:
+                          https://creativecommons.org/licenses/by/4.0/
