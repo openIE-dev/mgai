@@ -1,0 +1,121 @@
+name: release
+
+# Source for `mgai-meter` lives in the private joulesperbit monorepo, not
+# in this public repo. So a workflow here cannot just `cargo build` — there
+# is nothing to build. What this workflow CAN do is:
+#
+#   1. On `v*` tag push, create a draft release whose body is auto-generated
+#      from commit messages since the previous tag.
+#   2. Validate that the published release has the expected binary matrix
+#      attached (so a maintainer who forgets to upload one target gets a
+#      visible failure in Actions, not silent skew).
+#
+# Binaries are still built on the maintainer's machine and uploaded with:
+#   gh release upload <tag> -R openIE-dev/mgai \
+#     mgai-meter-<target>            (one per arch)
+#     checksums-<tag>.txt            (shasum -a 256 of each binary)
+#
+# Future move: a self-hosted runner on the dev machine (10.10.10.2) with
+# access to the private monorepo can drop into this workflow as
+# `runs-on: [self-hosted, joulesperbit]` and build the matrix automatically.
+# Until that runner is registered, the draft-release path below is the
+# whole workflow.
+
+on:
+  push:
+    tags: ['v*']
+  release:
+    types: [published]
+
+jobs:
+  draft:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pick the previous tag
+        id: prev
+        run: |
+          prev=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1 || true)
+          echo "tag=${prev}" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes from commits
+        id: notes
+        run: |
+          if [ -n "${{ steps.prev.outputs.tag }}" ]; then
+            range="${{ steps.prev.outputs.tag }}..${GITHUB_REF_NAME}"
+          else
+            range="${GITHUB_REF_NAME}"
+          fi
+          {
+            echo "notes<<__EOF__"
+            echo "## What changed"
+            echo
+            git log --pretty=format:'- %s' "${range}"
+            echo
+            echo
+            echo "## Binaries"
+            echo
+            echo "Attach with:"
+            echo
+            echo '```'
+            echo "gh release upload ${GITHUB_REF_NAME} \\"
+            echo "  mgai-meter-aarch64-apple-darwin \\"
+            echo "  mgai-meter-x86_64-apple-darwin \\"
+            echo "  mgai-meter-x86_64-unknown-linux-gnu \\"
+            echo "  mgai-meter-aarch64-unknown-linux-gnu \\"
+            echo "  checksums-${GITHUB_REF_NAME}.txt"
+            echo '```'
+            echo
+            echo "See [CHARTER.md](../blob/main/CHARTER.md) for what is invariant vs dated."
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: true
+          prerelease: false
+
+  verify-matrix:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm expected binary matrix is attached
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          required=(
+            "mgai-meter-aarch64-apple-darwin"
+            "mgai-meter-x86_64-apple-darwin"
+            "checksums-${tag}.txt"
+          )
+          # Linux targets are optional until a runner with access to the
+          # private source is registered. They are listed in the warning
+          # below so we notice the gap, but do not fail the workflow.
+          optional=(
+            "mgai-meter-x86_64-unknown-linux-gnu"
+            "mgai-meter-aarch64-unknown-linux-gnu"
+          )
+          attached=$(gh release view "$tag" -R "${GITHUB_REPOSITORY}" --json assets --jq '.assets[].name')
+          missing=()
+          for name in "${required[@]}"; do
+            grep -qxF "$name" <<< "$attached" || missing+=("$name")
+          done
+          for name in "${optional[@]}"; do
+            grep -qxF "$name" <<< "$attached" || echo "::warning::optional asset missing: $name"
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::required release assets missing: ${missing[*]}"
+            exit 1
+          fi
+          echo "ok — all required assets present"
