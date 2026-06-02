@@ -109,81 +109,61 @@ The receipt's two non-negotiables: the **method label** (`measured` vs
 `tdp_estimate + landauer_floor`) is always present; the **μ** column shows the
 gap to physics. A receipt that hides either is a substrate bug.
 
-## Live, in the browser: mathground.ai
+## The substrate in four pieces
 
-Nine interactive exhibits run the same accounting in WebAssembly on your
-device:
+The architecture lives today in four pieces — each one stands on its own,
+and the live exhibit at the linked URL runs the kernel and emits its receipt
+in your browser.
 
-| exhibit                                           | what it measures                  |
-| ------------------------------------------------- | --------------------------------- |
-| [/exhibits/fft](https://mathground.ai/exhibits/fft)         | Cooley–Tukey radix-2 FFT          |
-| [/exhibits/fft2d](https://mathground.ai/exhibits/fft2d)     | 2-D FFT via row-then-column passes |
-| [/exhibits/lorenz](https://mathground.ai/exhibits/lorenz)   | Lorenz '63 RK4 integrator         |
-| [/exhibits/heat](https://mathground.ai/exhibits/heat)       | 2-D heat equation, explicit Euler |
-| [/exhibits/grad](https://mathground.ai/exhibits/grad)       | Heavy-ball gradient descent       |
-| [/exhibits/pfilter](https://mathground.ai/exhibits/pfilter) | Bootstrap particle filter         |
-| [/exhibits/sdf](https://mathground.ai/exhibits/sdf)         | Marching squares on a 2-D SDF     |
-| [/exhibits/sdf3d](https://mathground.ai/exhibits/sdf3d)     | 3-D SDF, sphere-traced (WebGL2)   |
-| [/exhibits/sudoku](https://mathground.ai/exhibits/sudoku)   | CSP receipts (AC-3 vs Z3 vs brute)|
+### 01 · Chain of thought — deterministic
 
-Companion pages:
+A small cascade walks each query through a ladder of tiers (closed-form,
+retrieved, identifiable, cited, model-class). Every hop records what was
+tried, what matched, and what it cost. The trace IS the reasoning; replaying
+it reproduces the answer. Zero new compute — the transcript is the chain of
+thought.
 
-- [/scale](https://mathground.ai/scale) — your last frame plotted on a 29-decade log axis between the Landauer floor and a 1 km drive in an EV.
-- [/receipts](https://mathground.ai/receipts) — the four receipt shapes, plus a per-device session aggregator that reads `localStorage`.
-- [/lineage](https://mathground.ai/lineage) — what mathground inherits from Deep Space 1 Remote Agent and adjacent literature.
+Live: [mathground.ai/exhibits/reason](https://mathground.ai/exhibits/reason)
 
-## Where we sit — substrate vs vendor
+### 02 · Omnimodal routing — one shape-key space
 
-On **1 June 2026**, NVIDIA shipped a coordinated triple drop — new silicon
-(RTX Spark), an open world foundation model (Cosmos 3), and an open AV
-reasoning VLA (Alpamayo 2 Super) — across Computex and GTC Taipei. Each
-demonstrates a capability shape. Each already lives at picojoule grain inside
-this site. Four pairings:
+Text, image, audio, and video each ride a modality-specific deterministic
+encoder (trigram bag, cell-level bind, FFT-band bag, per-frame image-bind
+with temporal permute-and-bundle for video). All four produce a 10 000-dim
+bipolar hypervector in the same space. The cross-modal cosine matrix is the
+substrate property — no joint training, no shared neural encoder.
 
-### 01 · Alpamayo 2 Super → chain-of-thought trace
+Live: [mathground.ai/exhibits/omnimodal](https://mathground.ai/exhibits/omnimodal)
 
-| | |
-|---|---|
-| **The proof** | 32 B-parameter open reasoning VLA for L4 robotaxi development; produces a chain-of-thought trace before acting. |
-| **The substrate version** | [`/exhibits/reason`](https://mathground.ai/exhibits/reason) — a small cascade walks each query through five tiers and emits the trace as the chain of thought. Every hop is a deterministic function with its own picojoule receipt. |
-| **SWAP-C note** | Zero new compute. The transcript IS the chain of thought. |
+### 03 · Reasoning + generation split per tier
 
-### 02 · Cosmos 3 → modality routers, one shape-key space
+Every cascade tier is split into a reasoning sub-expert (classify the form
+of the query) and a generation sub-expert (produce the answer in that form).
+Generation only fires when reasoning matches. Both sub-hops are individually
+accountable in the trace; the receipt prices each separately. A refactor of
+the cascade, not new compute.
 
-| | |
-|---|---|
-| **The proof** | Open omnimodel for physical AI. Mixture-of-transformers; trained on 20 trillion multimodal tokens. Single model handles text/image/video/audio/action. |
-| **The substrate version** | [`/exhibits/omnimodal`](https://mathground.ai/exhibits/omnimodal) — four deterministic encoders project text, image, audio, and video into the same HDC shape-key space. A live 4×4 cosine matrix is the proof. No joint training; no shared neural encoder. |
-| **SWAP-C note** | ~150 LOC per encoder. No model weights. The omnimodal property is substrate, not learned. |
+Live: [mathground.ai/exhibits/reason](https://mathground.ai/exhibits/reason)
 
-### 03 · Cosmos 3 (architecture) → MoT cascade split
+### 04 · Lazy model tier — separate WASM bundle
 
-| | |
-|---|---|
-| **The proof** | Mixture-of-transformers: a reasoning transformer and an expert generation transformer share a common embedding. Separation of "classify the form" from "synthesise the answer". |
-| **The substrate version** | [`/exhibits/reason`](https://mathground.ai/exhibits/reason) — every cascade tier is split into a reasoning sub-expert (recognise the form) and a generation sub-expert (produce the answer). Generation only fires when reasoning matches. Both sub-hops are individually accountable. |
-| **SWAP-C note** | A refactor, not new compute. The capability shape transfers directly. |
+Most queries resolve at the spine for picojoules. When a query escapes, the
+page dynamic-imports a separate WASM bundle (the model tier), pays its byte
+cost plus per-token inference, and surfaces both costs as a receipt. The leaf
+is small because the spine catches almost everything. Two bundles are visible
+in the browser's Network panel: the spine on first paint, the leaf only on
+escalation.
 
-### 04 · RTX Spark → lazy-loaded L2 leaf
+Live: [mathground.ai/exhibits/escalate](https://mathground.ai/exhibits/escalate)
 
-| | |
-|---|---|
-| **The proof** | NVIDIA's first Windows-PC processor. 20-core Grace + Blackwell GPU + NPU + 128 GB unified. 1 petaFLOP AI; runs 120-billion-parameter models locally. |
-| **The substrate version** | [`/exhibits/escalate`](https://mathground.ai/exhibits/escalate) — the cascade resolves most queries at L0/L1 for picojoules. When a query escapes the spine, the page dynamic-imports a separate WASM bundle (the model tier) and pays its byte cost plus per-token inference. Two bundles visible in the browser's Network panel. |
-| **SWAP-C note** | L2 leaf only paid for on escalation. Receipt parameterised for a [PrismML 1-bit Bonsai 1.7 B](https://prismml.com/news/ternary-bonsai)-class model. |
+### Principles the substrate commits to
 
-### Why this is the only lane left to take
+- **Useful work has a unit.** Every metered call returns its joules — computed at the call site against a silicon-specific cost model, the Landauer floor, and a TDP envelope. Joules.
+- **Most compute is lookup.** The cascade resolves at the lowest tier whose grammar covers the request. A model fires only when the spine could not place the request.
+- **V-class is typed at the grammar.** Every claim carries an explicit replayability class. The substrate refuses to fabricate; unmarked claims cannot be constructed at the type level.
+- **Replicas reconcile by digest.** Two replicas serving the same command stream land on identical FNV-1a transcript digests. Trust is the comparison.
 
-Vendor capability growth is **anti-SWAP-C**: each new generation ships more
-power per chip, not less. The hardware-software-joule loop nets out to absolute
-energy growth even under exponential compute scaling. The low-SWAP-C envelope
-(drones, OpenMV cameras, STM32 sensor nodes, wearables, medical implants)
-remains the unsolved joule problem, and it can only be solved at the substrate
-level. The receipt is the discriminator: incumbents pay tokens for "show
-thinking" verbosity; the substrate emits the trace as a free byproduct of the
-cascade.
-
-The full pairings page with the live exhibits is at
+The full architecture map with each piece's exhibit is at
 [mathground.ai/lane](https://mathground.ai/lane).
 
 ## Status
