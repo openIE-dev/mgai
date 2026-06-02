@@ -132,6 +132,60 @@ Companion pages:
 - [/receipts](https://mathground.ai/receipts) — the four receipt shapes, plus a per-device session aggregator that reads `localStorage`.
 - [/lineage](https://mathground.ai/lineage) — what mathground inherits from Deep Space 1 Remote Agent and adjacent literature.
 
+## Where we sit — substrate vs vendor
+
+On **1 June 2026**, NVIDIA shipped a coordinated triple drop — new silicon
+(RTX Spark), an open world foundation model (Cosmos 3), and an open AV
+reasoning VLA (Alpamayo 2 Super) — across Computex and GTC Taipei. Each
+demonstrates a capability shape. Each already lives at picojoule grain inside
+this site. Four pairings:
+
+### 01 · Alpamayo 2 Super → chain-of-thought trace
+
+| | |
+|---|---|
+| **The proof** | 32 B-parameter open reasoning VLA for L4 robotaxi development; produces a chain-of-thought trace before acting. |
+| **The substrate version** | [`/exhibits/reason`](https://mathground.ai/exhibits/reason) — a small cascade walks each query through five tiers and emits the trace as the chain of thought. Every hop is a deterministic function with its own picojoule receipt. |
+| **SWAP-C note** | Zero new compute. The transcript IS the chain of thought. |
+
+### 02 · Cosmos 3 → modality routers, one shape-key space
+
+| | |
+|---|---|
+| **The proof** | Open omnimodel for physical AI. Mixture-of-transformers; trained on 20 trillion multimodal tokens. Single model handles text/image/video/audio/action. |
+| **The substrate version** | [`/exhibits/omnimodal`](https://mathground.ai/exhibits/omnimodal) — four deterministic encoders project text, image, audio, and video into the same HDC shape-key space. A live 4×4 cosine matrix is the proof. No joint training; no shared neural encoder. |
+| **SWAP-C note** | ~150 LOC per encoder. No model weights. The omnimodal property is substrate, not learned. |
+
+### 03 · Cosmos 3 (architecture) → MoT cascade split
+
+| | |
+|---|---|
+| **The proof** | Mixture-of-transformers: a reasoning transformer and an expert generation transformer share a common embedding. Separation of "classify the form" from "synthesise the answer". |
+| **The substrate version** | [`/exhibits/reason`](https://mathground.ai/exhibits/reason) — every cascade tier is split into a reasoning sub-expert (recognise the form) and a generation sub-expert (produce the answer). Generation only fires when reasoning matches. Both sub-hops are individually accountable. |
+| **SWAP-C note** | A refactor, not new compute. The capability shape transfers directly. |
+
+### 04 · RTX Spark → lazy-loaded L2 leaf
+
+| | |
+|---|---|
+| **The proof** | NVIDIA's first Windows-PC processor. 20-core Grace + Blackwell GPU + NPU + 128 GB unified. 1 petaFLOP AI; runs 120-billion-parameter models locally. |
+| **The substrate version** | [`/exhibits/escalate`](https://mathground.ai/exhibits/escalate) — the cascade resolves most queries at L0/L1 for picojoules. When a query escapes the spine, the page dynamic-imports a separate WASM bundle (the model tier) and pays its byte cost plus per-token inference. Two bundles visible in the browser's Network panel. |
+| **SWAP-C note** | L2 leaf only paid for on escalation. Receipt parameterised for a [PrismML 1-bit Bonsai 1.7 B](https://prismml.com/news/ternary-bonsai)-class model. |
+
+### Why this is the only lane left to take
+
+Vendor capability growth is **anti-SWAP-C**: each new generation ships more
+power per chip, not less. The hardware-software-joule loop nets out to absolute
+energy growth even under exponential compute scaling. The low-SWAP-C envelope
+(drones, OpenMV cameras, STM32 sensor nodes, wearables, medical implants)
+remains the unsolved joule problem, and it can only be solved at the substrate
+level. The receipt is the discriminator: incumbents pay tokens for "show
+thinking" verbosity; the substrate emits the trace as a free byproduct of the
+cascade.
+
+The full pairings page with the live exhibits is at
+[mathground.ai/lane](https://mathground.ai/lane).
+
 ## Status
 
 This is a research substrate under active development. The seven invariants in
