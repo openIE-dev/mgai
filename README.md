@@ -19,7 +19,7 @@ at **[mathground.ai](https://mathground.ai)**.
 mgai/
 ├── README.md     # This document
 ├── CHARTER.md    # The seven invariants the substrate commits to forever
-└── LICENSE       # BSL-1.1 (binary), CC-BY-4.0 (CHARTER.md and receipts)
+├── LICENSE-MIT / LICENSE-APACHE / COPYRIGHT   # MIT OR Apache-2.0
 ```
 
 Binaries are attached to **[Releases](https://github.com/openIE-dev/mgai/releases)**.
@@ -33,9 +33,9 @@ tier of the cognitive cascade, computes the **Landauer-floor lower bound** for
 the energy of that operation (`kT·ln 2 × bit-ops`, exact at 300 K), and the
 **TDP-estimate upper bound** (`wall_time × assumed_watts`, declared as an
 estimate). The ratio of the upper bound to the lower bound is the **apparent
-impedance** μ — how far real silicon sits above physics' floor.
+impedance** μ, how far real silicon sits above physics' floor.
 
-Why this exists: the cascade's energy story turns on a falsifiable claim — that
+Why this exists: the cascade's energy story turns on a falsifiable claim, that
 deterministic primitives at the low tiers cost orders of magnitude less than
 model-generated primitives at the high tiers. `mgai-meter` makes that claim
 measurable on whichever computer you run it on. If the ratios disappear on
@@ -62,7 +62,7 @@ cascade ratios (wall-time):
 E_measured: null   (no live counter on this substrate)
 ```
 
-The cascade ratios are **measured wall-time** — real numbers on real silicon.
+The cascade ratios are **measured wall-time**, real numbers on real silicon.
 Absolute joules are bracketed by the Landauer floor (a physical lower bound)
 and the TDP envelope (a labelled upper estimate); a live energy counter
 (RAPL / powercap / NVML / `powermetrics`) tightens the bracket but is not
@@ -73,16 +73,16 @@ required to read the ratios.
 A receipt is more honest than a benchmark. The four shapes the library
 publishes:
 
-1. **Joule receipt** — every metered call returns its joules, computed at the
+1. **Joule receipt**, every metered call returns its joules, computed at the
    call site against a silicon-specific cost model.
-2. **Epistemic-mode receipt** — every claim carries its V-class
+2. **Epistemic-mode receipt**, every claim carries its V-class
    (`L0-closed`, `L0-retrieved`, `L0-identifiable`, `L1`, `L1.5`, `L2`),
    `source`, `axes`, and `epistemic_mode`. A claim that cannot be authored at
    the right V-class is not authored. Unmarked claims cannot be constructed at
    the type level.
-3. **Evidence receipt** — anytime-valid e-values + prediction-powered inference
+3. **Evidence receipt**, anytime-valid e-values + prediction-powered inference
    for any quantity the library asserts.
-4. **Routing checkpoint** — byte-reproducible. Two replicas of the cascade
+4. **Routing checkpoint**, byte-reproducible. Two replicas of the cascade
    serving the same command stream land on the same FNV-1a transcript digest;
    mutation, drop, or reorder is detected by digest divergence alone.
 
@@ -102,7 +102,7 @@ across implementations:
 | L0-retrieved       | `HashMap<&str,&str>` lookup            | L0-retrieved   | ~10¹⁰                 |
 | L0-identifiable    | HDC item-memory cleanup                | L0-identifiable| ~10¹⁰                 |
 | L1                 | citation-backed `HashMap<&str,Cited>`  | L1             | ~10¹⁰                 |
-| L1.5 (vector tier) | Matryoshka short-circuit (in cascade)  | L1             | —                     |
+| L1.5 (vector tier) | Matryoshka short-circuit (in cascade)  | L1             |,                     |
 | L2                 | dense matmul proxy                     | L2             | ~10¹¹                 |
 
 The receipt's two non-negotiables: the **method label** (`measured` vs
@@ -111,27 +111,27 @@ gap to physics. A receipt that hides either is a substrate bug.
 
 ## The substrate in four pieces
 
-The architecture lives today in four pieces — each one stands on its own,
+The architecture lives today in four pieces, each one stands on its own,
 and the live exhibit at the linked URL runs the kernel and emits its receipt
 in your browser.
 
-### 01 · Chain of thought — deterministic
+### 01 · Chain of thought, deterministic
 
 A small cascade walks each query through a ladder of tiers (closed-form,
 retrieved, identifiable, cited, model-class). Every hop records what was
 tried, what matched, and what it cost. The trace IS the reasoning; replaying
-it reproduces the answer. Zero new compute — the transcript is the chain of
+it reproduces the answer. Zero new compute, the transcript is the chain of
 thought.
 
 Live: [mathground.ai/exhibits/reason](https://mathground.ai/exhibits/reason)
 
-### 02 · Omnimodal routing — one shape-key space
+### 02 · Omnimodal routing, one shape-key space
 
 Text, image, audio, and video each ride a modality-specific deterministic
 encoder (trigram bag, cell-level bind, FFT-band bag, per-frame image-bind
 with temporal permute-and-bundle for video). All four produce a 10 000-dim
 bipolar hypervector in the same space. The cross-modal cosine matrix is the
-substrate property — no joint training, no shared neural encoder.
+substrate property, no joint training, no shared neural encoder.
 
 Live: [mathground.ai/exhibits/omnimodal](https://mathground.ai/exhibits/omnimodal)
 
@@ -145,7 +145,7 @@ the cascade, not new compute.
 
 Live: [mathground.ai/exhibits/reason](https://mathground.ai/exhibits/reason)
 
-### 04 · Lazy model tier — separate WASM bundle
+### 04 · Lazy model tier, separate WASM bundle
 
 Most queries resolve at the spine for picojoules. When a query escapes, the
 page dynamic-imports a separate WASM bundle (the model tier), pays its byte
@@ -158,7 +158,7 @@ Live: [mathground.ai/exhibits/escalate](https://mathground.ai/exhibits/escalate)
 
 ### Principles the substrate commits to
 
-- **Useful work has a unit.** Every metered call returns its joules — computed at the call site against a silicon-specific cost model, the Landauer floor, and a TDP envelope. Joules.
+- **Useful work has a unit.** Every metered call returns its joules, computed at the call site against a silicon-specific cost model, the Landauer floor, and a TDP envelope. Joules.
 - **Most compute is lookup.** The cascade resolves at the lowest tier whose grammar covers the request. A model fires only when the spine could not place the request.
 - **V-class is typed at the grammar.** Every claim carries an explicit replayability class. The substrate refuses to fabricate; unmarked claims cannot be constructed at the type level.
 - **Replicas reconcile by digest.** Two replicas serving the same command stream land on identical FNV-1a transcript digests. Trust is the comparison.
@@ -175,9 +175,8 @@ that's intended to stay stable.
 
 ## License
 
-The binary is distributed under **BSL-1.1** with conversion to Apache-2.0 at a
-date specified per-release. Source remains private during the build-out.
-Receipts and `CHARTER.md` are CC-BY-4.0.
+Copyright (c) 2026 Open Interface Engineering, Inc. Licensed under either of Apache License, Version 2.0 ([LICENSE-APACHE](./LICENSE-APACHE)) or the MIT license ([LICENSE-MIT](./LICENSE-MIT)), at your option, for the binaries, the documentation and the examples. Earlier releases and earlier versions of this README described the binaries as Business Source License 1.1; that no longer applies.
+
 
 ## Contact
 
